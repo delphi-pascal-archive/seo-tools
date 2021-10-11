@@ -1,0 +1,175 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<TITLE>HTMLParser</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<H1>THTMLParser v1.2</h1>
+THTMLParser is a delphi class to parse a HTML file.
+The file will be split into tags, text, script, and comment
+objects (useful  for validating tags or for automatic code corrections).
+Sample file included (very simple web browser!).
+Supports HTML4.0<BR>
+<br>
+<B>How to use the HTMLParser</B>
+<HR>
+Create an instance of HTMLParser with <br>
+<br>
+<FONT face="Courier">&nbsp;&nbsp;HTMLParser:=THTMLParser.Create;</FONT>
+<br>
+<br>
+then load a HTML file, e.g.<br>
+<br>
+<FONT face="Courier">&nbsp;&nbsp;HTMLParser.Memory.LoadFromFile(FileName)</FONT><br>
+<br>
+whereas Memory is a normal TMemoryStream.<br>
+With<br>
+<br>
+<FONT face="Courier">&nbsp;&nbsp;HTMLParser.Execute;</FONT><br>
+<br>
+the file will be parsed into <FONT face="Courier">HTMLParser.Parsed</FONT> <BR>
+this TList consists of objects derived from 4 classes: THTMLText, THTMLTag, THTMLServerScript and THTMLComment
+which defined as following:<br>
+<br>
+<PRE>
+  TOnHTMLParseError = procedure (const ErrorInfo,Raw: String) of object;
+
+  THTMLItem = class
+  private
+    fPosition: Integer;
+    fLength: Integer;
+
+    function GetItem: String;
+    procedure SetItem(Const Position,Length: Integer);
+  end;
+
+  THTMLParam = class
+  private
+    fRaw: THTMLItem;
+    fKey: THTMLItem;
+    fValue: THTMLItem;
+
+    function GetRaw: String;
+    function GetKey: String;
+    function GetValue: String;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Key: String read GetKey;
+    property Value: String read GetValue;
+    property Raw: String read GetRaw;
+  end;
+
+  THTMLTag = class
+  private
+    fOnHTMLParseError: TOnHTMLParseError;
+    fName: THTMLItem;
+    fRaw: THTMLItem;
+
+    function GetName: String;
+    function GetRaw: String;
+    procedure SetName(const Position,Length: Integer);
+  public
+    Params:TList; //Maybe is nil !!!
+
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Name: String read GetName; // uppercased TAG (without <>)
+    property Raw: String read GetRaw; // raw TAG (parameters included) as read from input file (without<>)
+  end;
+
+  THTMLText = class(THTMLItem)
+  private
+    function GetText: String;
+  published
+    property Text: String read GetText;
+  end;
+
+  THTMLComment = class(THTMLItem)
+  private
+    function GetComment: String;
+  published
+    property Comment: String read GetComment;
+  end;
+
+  THTMLServerScript = class(THTMLItem)
+  private
+    function GetScript: String;
+  published
+    property Script: String read GetScript;
+  end;
+
+  THTMLParser = class(TObject)
+  private
+    fOnHTMLParseError: TOnHTMLParseError;
+    LastTagName: String;
+    LTPos,GTPos,LastGTPos: Integer;
+
+    procedure Init;
+    procedure Final;
+    procedure AddText;
+    procedure AddTag;
+  public
+    parsed:TList;
+    Memory: TMemoryStream;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Execute;
+  published
+    property OnHTMLParseError: TOnHTMLParseError read fOnHTMLParseError write fOnHTMLParseError;
+  end;
+</PRE>
+
+<B>Example</B>
+<HR>
+The HTML file
+<Font face="courier"><br>
+<br>
+ &lt;html&gt;<br>
+ &lt;BODY LINK="#FF00FF" border=0&gt;<br>
+ Hello You &#38;amp; Go!<br>
+ &lt;/html&gt;<br>
+<br>
+
+</font>
+
+will result in 4 objects (<FONT FACE="Courier">HTMLParser.Parsed.Count=4</FONT>):<BR>
+
+<PRE>
+
+[0] HTMLTag.Name = "html"
+           .Params.count = 0
+
+[1] HTMLTag.Name = "BODY"
+           .Params.count = 2
+
+                  [0]  HTMLParam.Key   = "LINK"
+                                .Value = "#FF00FF"
+                  [1]  HTMLParam.Key   = "border"
+                                .Value = "0"
+
+[2] HTMLText.Line = "Hello You &#38;amp; Go!"
+
+[3] HTMLTag.Name = "/html"
+           .Params.count = 0
+</PRE>
+<br>
+<B>Comments and Bugs</B>
+<HR>
+Please send any comments or bugs to <A HREF="mailto:soarowl@yeah.net">
+soarowl@yeah.net</A>.<BR>
+<BR>
+<H1>Important!</H1>
+Please do <B>NOT</B> report any bugs considering this WebBrowser sample!<br>
+This sample is not meant as a full HTML compatible browser, indeed it is
+programmed to show this help file only.
+
+
+<HR>
+&copy;2001.11.6 Nengwen Zhuo<BR>
+
+</HTML>
